@@ -1,9 +1,13 @@
-﻿using App.API.DTOs;
+﻿using App.API.CacheItems;
+using App.API.DTOs;
 using App.Repository;
 using App.Repository.DocumentItems;
 using App.Repository.DocumentStatusEnum;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using static StackExchange.Redis.Role;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace App.API.Controllers
 {
@@ -13,17 +17,30 @@ namespace App.API.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
-        public DocumentsController(AppDbContext context ,IWebHostEnvironment env)
+        private readonly DocumentService _documentService;
+        public DocumentsController(AppDbContext context ,IWebHostEnvironment env, DocumentService documentService)
         {
             _env = env;
             _context = context;
+            _documentService= documentService;
         }
 
         // GET: api/Documents
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Document>>> GetDocuments()
+        public async Task<ActionResult<IEnumerable<Document>>> GetDocuments(CancellationToken cancellationToken)
         {
-            return await _context.Documents.ToListAsync();
+            var documentAsJson = await _documentService.GetDocumentsFromCache(cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(documentAsJson))
+            {
+                var cachedDocuments = JsonSerializer.Deserialize<List<GetDocumentDto>>(documentAsJson);
+
+                if (cachedDocuments is not null)
+                    return Ok(cachedDocuments);
+            }
+
+            var documents = await _context.Documents.ToListAsync(cancellationToken);
+            return Ok(documents);
         }
 
         // GET: api/Documents/5
@@ -74,7 +91,7 @@ namespace App.API.Controllers
         // POST: api/Documents
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult> PostDocument([FromForm] DocumentUploadDto model)
+        public async Task<ActionResult> PostDocument([FromForm] DocumentUploadDto model, CancellationToken cancellationToken)
         {
             if (model.File == null)
                 return BadRequest("Dosya bulunamadı");
@@ -104,7 +121,7 @@ namespace App.API.Controllers
             _context.Documents.Add(document);
             await _context.SaveChangesAsync();
 
-       
+            await _documentService.CreateCacheAsync(document, cancellationToken);
 
             return CreatedAtAction("GetDocument", new { id = document.Id }, document);
         }

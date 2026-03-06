@@ -1,0 +1,73 @@
+services:
+  sqlserver.db.api:
+    restart: always
+    user: root # user: "1000:1000" # SQL Server needs to run with its own permissions
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver.db.api.container
+    environment:
+     SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+     ACCEPT_EULA: "Y"
+    healthcheck:
+      test: >
+        /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${MSSQL_SA_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver.db.api.volume:/var/opt/mssql
+  app.api:
+    image: ${DOCKER_REGISTRY-}appapi
+    build:
+      context: .
+      dockerfile: App.API/Dockerfile
+    depends_on:
+      - redis.db.api
+      - rabbitmq
+      - sqlserver.db.api
+  redis.db.api:
+    restart: always
+    image: redis:7.0-alpine
+    container_name: redis.db.container
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis.db.api.volume:/data
+  redis.db.api.ui:
+    image: rediscommander/redis-commander:latest
+    container_name: redis.db.api.ui.container
+    restart: always
+    depends_on:
+      - redis.db.api
+    ports:
+      - "27033:8081"
+    environment:
+      REDIS_HOST: redis.db.api
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      HTTP_USER: ${REDIS_UI_USERNAME}
+      HTTP_PASSWORD: ${REDIS_UI_PASSWORD}
+
+  rabbitmq:
+    restart: always
+    image: rabbitmq:3.13.7-management
+    container_name: rabbitmq.container
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+ 
+
+volumes:
+  redis.db.api.volume:    
+  rabbitmq_data:
+  sqlserver.db.api.volume:
+  
+

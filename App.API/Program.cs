@@ -1,8 +1,18 @@
+using App.API.CacheItems;
+using App.Repository;
 using App.Repository.Extentions;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<DocumentService>();
+
+// Redis Bağlantı ayarları
+builder.Services.AddStackExchangeRedisCache(options => {
+    var connectiontostring = builder.Configuration.GetSection(RedisConnectionTostringOptions.Key).Get<RedisConnectionTostringOptions>();
+    options.Configuration = connectiontostring!.Redis;
+});
 // Add services to the container.
 builder.Services.AddRepositoryExtentions(builder.Configuration);
 builder.Services.AddControllers();
@@ -10,7 +20,13 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
-
+//çalıştığında otomatik migration yapması için
+//using (var scope = app.Services.CreateScope())
+//{
+//    var serviceProvider = scope.ServiceProvider;
+//    var dbContext = serviceProvider.GetRequiredService<AppDbContext>();
+//    await dbContext.Database.MigrateAsync();
+//}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

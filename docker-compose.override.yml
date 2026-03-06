@@ -1,0 +1,20 @@
+
+services:
+  app.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - "BusOption:Address=rabbitmq"
+      - "BusOption:Port=5672"
+      - "ConnectionStrings:Redis=redis.db.api:6379,password=Password12"
+    ports:
+     - "8080"
+    depends_on:
+      - redis.db.api
+      - rabbitmq 
+      - sqlserver.db.api
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
