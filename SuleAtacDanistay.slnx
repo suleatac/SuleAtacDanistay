@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="App.API/App.API.csproj" />
+  <Project Path="App.Repository/App.Repository.csproj" />
+</Solution>
