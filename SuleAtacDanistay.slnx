@@ -1,7 +1,7 @@
 <Solution>
-  <Project Path="../App.UI/App.UI.csproj" Id="013afe07-59a5-44ff-848f-bbdb54460e8f" />
   <Project Path="App.API/App.API.csproj" />
   <Project Path="App.Repository/App.Repository.csproj" />
+  <Project Path="App.UI/App.UI.csproj" />
   <Project Path="docker-compose.dcproj">
     <Build />
   </Project>
