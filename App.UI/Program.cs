@@ -1,4 +1,6 @@
+
 using App.Repository.Extentions;
+using App.UI.Extentions;
 using App.UI.RefitItems;
 using Refit;
 
@@ -10,7 +12,7 @@ builder.Services.AddRefitClient<IDocumentsClient>().ConfigureHttpClient(s => {
     var connectionOfRefit = builder.Configuration.GetSection(UrlOptions.Key).Get<UrlOptions>();
     s.BaseAddress = new Uri(connectionOfRefit!.ClientUrl!);
 });
-
+builder.Services.AddBusExtentions(builder.Configuration);
 // Add services to the container.
 builder.Services.AddRepositoryExtentions(builder.Configuration);
 var app = builder.Build();

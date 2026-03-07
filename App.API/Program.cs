@@ -1,4 +1,5 @@
 using App.API.CacheItems;
+using App.Bus.Extentions;
 using App.Repository;
 using App.Repository.Extentions;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -7,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<DocumentService>();
-
+builder.Services.AddCommonBusExtentions(builder.Configuration);
 // Redis Bağlantı ayarları
 builder.Services.AddStackExchangeRedisCache(options => {
     var connectiontostring = builder.Configuration.GetSection(RedisConnectionTostringOptions.Key).Get<RedisConnectionTostringOptions>();

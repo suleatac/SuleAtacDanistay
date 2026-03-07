@@ -1,13 +1,13 @@
 ﻿using App.API.CacheItems;
 using App.API.DTOs;
+using App.Bus.Publisher;
 using App.Repository;
 using App.Repository.DocumentItems;
 using App.Repository.DocumentStatusEnum;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-using static StackExchange.Redis.Role;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace App.API.Controllers
 {
@@ -18,11 +18,13 @@ namespace App.API.Controllers
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly DocumentService _documentService;
-        public DocumentsController(AppDbContext context ,IWebHostEnvironment env, DocumentService documentService)
+        private readonly IPublishEndpoint _publishEndpoint;
+        public DocumentsController(AppDbContext context ,IWebHostEnvironment env, DocumentService documentService, IPublishEndpoint publishEndpoint)
         {
             _env = env;
             _context = context;
             _documentService= documentService;
+            _publishEndpoint= publishEndpoint;
         }
 
         // GET: api/Documents
@@ -40,6 +42,10 @@ namespace App.API.Controllers
             }
 
             var documents = await _context.Documents.ToListAsync(cancellationToken);
+
+            var publishDocument = new PublishDocument(1, "mesaj örnek ad", "örnek dosya yolu");
+
+            await _publishEndpoint.Publish(publishDocument, cancellationToken);
             return Ok(documents);
         }
 

@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="../App.Bus/App.Bus.csproj" Id="df20c3f3-50d0-4032-95b0-e7072355e2ff" />
   <Project Path="App.API/App.API.csproj" />
   <Project Path="App.Repository/App.Repository.csproj" />
   <Project Path="App.UI/App.UI.csproj" />
