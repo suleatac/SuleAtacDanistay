@@ -4,7 +4,7 @@ using Microsoft.Extensions.FileProviders;
 
 namespace App.UI.Consumer
 {
-    public class ConsumerDocument(IServiceProvider serviceProvider) : IConsumer<PublishDocument>
+    public class ConsumerDocument : IConsumer<PublishDocument>
     {
         public async Task Consume(ConsumeContext<PublishDocument> context)
         {
